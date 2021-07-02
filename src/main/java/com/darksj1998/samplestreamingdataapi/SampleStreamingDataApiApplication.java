@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class SampleStreamingDataApiApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SampleStreamingDataApiApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SampleStreamingDataApiApplication.class, args);
+    }
 
 }
