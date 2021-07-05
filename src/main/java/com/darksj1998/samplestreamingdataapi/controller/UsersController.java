@@ -3,6 +3,8 @@ package com.darksj1998.samplestreamingdataapi.controller;
 import com.darksj1998.samplestreamingdataapi.model.User;
 import com.darksj1998.samplestreamingdataapi.service.UsersService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,13 +23,21 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UsersController {
 
+    private final Logger logger = LoggerFactory.getLogger(UsersController.class);
+    private final String logHead = "UsersController :: ";
+
     @Autowired
     private UsersService usersService;
 
     @GetMapping
     public List<User> getAllUsers() {
+        logger.info(logHead + "getAllUsers() starting");
+
         // Populating the users list for dev purposes
         usersService.populateUsersList();
+
+        logger.info(logHead + "getAllUsers() exiting");
+
         return usersService.getUsersList();
     }
 
@@ -38,6 +48,8 @@ public class UsersController {
      */
     @GetMapping("/async/method1")
     public ResponseEntity<StreamingResponseBody> getAllUsersAsyncMethod1() {
+        logger.info(logHead + "getAllUsersAsyncMethod1() starting");
+
         // Populating the users list for dev purposes
         usersService.populateUsersList();
 
@@ -51,6 +63,8 @@ public class UsersController {
             }
         };
 
+        logger.info(logHead + "getAllUsersAsyncMethod1() exiting");
+
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_STREAM_JSON)
                 .body(streamingResponseBody);
@@ -63,6 +77,8 @@ public class UsersController {
      */
     @GetMapping("/async/method2")
     public ResponseEntity<StreamingResponseBody> getAllUsersAsyncMethod2() {
+        logger.info(logHead + "getAllUsersAsyncMethod2() starting");
+
         // Populating the users list for dev purposes
         usersService.populateUsersList();
         List<User> usersListSuperset = usersService.getUsersList();
@@ -72,24 +88,31 @@ public class UsersController {
                 User user = usersListSuperset.get(i);
                 ObjectMapper objectMapper = new ObjectMapper();
 
-                String jsonString = objectMapper.writeValueAsString(user);
-                if (i == 0)
-                    jsonString = "[ " + jsonString + ", ";
-                else if (i < usersListSuperset.size() - 1)
-                    jsonString += ", ";
-                else if (i == usersListSuperset.size() - 1)
-                    jsonString += " ]";
-                response.write(jsonString.getBytes());
-                response.flush();
-                System.out.println("Added User " + user + " to the response list");
-                System.out.println("Waiting for 2s now");
                 try {
+                    String jsonString = objectMapper.writeValueAsString(user);
+
+                    if (i == 0)
+                        jsonString = "[ " + jsonString + ", ";
+                    else if (i < usersListSuperset.size() - 1)
+                        jsonString += ", ";
+                    else if (i == usersListSuperset.size() - 1)
+                        jsonString += " ]";
+
+                    response.write(jsonString.getBytes());
+                    response.flush();
+
+                    logger.info(logHead + "getAllUsersAsyncMethod2() : Added User " + user + " to the response list");
+                    logger.info(logHead + "getAllUsersAsyncMethod2() : Waiting for 2s now");
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         };
+
+        logger.info(logHead + "getAllUsersAsyncMethod2() exiting");
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_STREAM_JSON)
